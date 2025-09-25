@@ -1,0 +1,707 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="/static/admin/css/vendor/apexcharts/apexcharts.css">
+<link rel="stylesheet" href="/static/admin/css/analytic_dashboard.css">
+{% endblock %}
+
+{% block content %}
+<section x-data="dashboard" class="section dashboard">
+  <div class="row">
+
+
+    <!-- Left side columns -->
+    <div class="col-lg-8">
+      <div class="row">
+
+        <!-- Revenue Today -->
+        <div class="col-xxl-4 col-md-6">
+          <div class="card info-card sales-card">
+            <div class="card-body">
+              <h6 class="card-title">Revenue <span>| Today</span></h6>
+              <div class="d-flex align-items-center">
+                <div class="card-icon card-icon-blue rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="ps-3">
+                  <h6 class="detail" x-text="'$' + metrics.revenue_today">$0</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue This Term -->
+        <div class="col-xxl-4 col-md-6">
+          <div class="card info-card revenue-card">
+            <div class="card-body">
+              <h6 class="card-title">Revenue <span>| This Term</span></h6>
+              <div class="d-flex align-items-center">
+                <div class="card-icon card-icon-green rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="ps-3">
+                  <h6 class="detail" x-text="'$' + metrics.revenue_term">$0</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Receipts Today -->
+        <div class="col-xxl-4 col-xl-12">
+          <div class="card info-card customers-card">
+            <div class="card-body">
+              <h6 class="card-title">Receipts <span>| Today</span></h6>
+              <div class="d-flex align-items-center">
+                <div class="card-icon card-icon-orange rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-receipt-cutoff"></i>
+                </div>
+                <div class="ps-3">
+                  <h6 class="detail" x-text="metrics.receipts_today">0</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue Report -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title">Reports <span>/Today</span></h6>
+              <div x-ref="revenueChart"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Sales -->
+        <div class="col-xxl-6 col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title">Daily Sales <span>| This week</span></h6>
+              <div x-ref="dailySales"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="col-xxl-6 col-md-6">
+          <!-- Bootstrap Version of the Summary Panel -->
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-4">
+                <h6 class="card-title mb-0">Summary</h6>
+                <div class="dropdown ms-auto">
+                  <a href="#" class="text-muted" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#">View Report</a></li>
+                    <li><a class="dropdown-item" href="#">Edit Report</a></li>
+                    <li><a class="dropdown-item" href="#">Mark as Done</a></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="">
+                <!-- Income -->
+                <div class="d-flex align-items-center mb-4">
+                  <div class="me-3">
+                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                      style="width: 36px; height: 36px;">
+                      <i class="bi bi-wallet2"></i>
+                    </div>
+                  </div>
+                  <div class="flex-fill">
+                    <div class="d-flex justify-content-between fw-semibold">
+                      <span>Income</span>
+                      <span x-text="'$' + metrics.income">$0</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-info" role="progressbar"
+                        :style="'width:' + metrics.income_percent + '%'"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Profit -->
+                <div class="d-flex align-items-center mb-4">
+                  <div class="me-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
+                      style="width: 36px; height: 36px;">
+                      <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="flex-fill">
+                    <div class="d-flex justify-content-between fw-semibold">
+                      <span>Profit</span>
+                      <span x-text="'$' + metrics.profit">$0</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-success" role="progressbar"
+                        :style="'width:' + metrics.profit_percent + '%'"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Expenses -->
+                <div class="d-flex align-items-center">
+                  <div class="me-3">
+                    <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center"
+                      style="width: 36px; height: 36px;">
+                      <i class="bi bi-credit-card"></i>
+                    </div>
+                  </div>
+                  <div class="flex-fill">
+                    <div class="d-flex justify-content-between fw-semibold">
+                      <span>Expenses</span>
+                      <span x-text="'$' + metrics.expenses">$0</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-warning" role="progressbar"
+                        :style="'width:' + metrics.expenses_percent + '%'"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Inventory Levels -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title">Inventory Levels <span>| This week</span></h6>
+              <div x-ref="inventoryLevels"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- End Left Columns -->
+
+    <!-- Right side columns -->
+    <div class="col-lg-4">
+      <div class="card border-0">
+        <div class="card-header text-white p-4"
+          style="background: linear-gradient(to right, var(--secondary), var(--primary)); min-height: 190px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center bg-dark bg-opacity-50 rounded-pill px-3 py-1 text-white fw-semibold">
+              Smart POS</div>
+            <button type="button" class="btn btn-dark btn-sm">
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-5">
+            <p class="fs-5 mb-0">Wallet Balance</p>
+            <h2 class="fs-4 mb-0">$2953</h2>
+          </div>
+        </div>
+
+        <div class="row gx-3 mx-3" style="margin-top: -3rem;">
+          <div class="col-6">
+            <div class="p-2 rounded shadow-sm text-secondary body-bg">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Received</span>
+                <i class="bi bi-chevron-up text-success"></i>
+              </div>
+              <div class="btn w-100 text-secondary fw-normal shadow-none darkened-bg">$97.99</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 rounded shadow-sm text-secondary body-bg">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Spent</span>
+                <i class="bi bi-chevron-down text-danger"></i>
+              </div>
+              <div class="btn w-100 text-secondary fw-normal shadow-none darkened-bg">$53.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="mb-3">
+            <span class="badge rounded-pill bg-dark text-white p-2 mt-3">
+              <i class="bi bi-journal-text"></i> Detailed Break Down
+            </span>
+          </div>
+          <div class="mb-4">
+            <template x-for="paymentMethod in paymentMethods" :key="paymentMethod.account_id">
+              <div class="d-flex justify-content-between">
+                <span class="fw-semibold text-secondary" x-text="paymentMethod.account_name">Cash Account</span>
+                <span class="fw-semibold text-secondary">$13.85</span>
+              </div>
+            </template>
+          </div>
+          <div class="d-flex justify-content-around gap-2">
+            <button class="btn btn-secondary">View Details</button>
+            <button class="btn btn-success">Pay Now $29.51</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">Sales By <span>| Products</span></h6>
+          <div x-ref="salesByCategory"></div>
+        </div>
+      </div>
+
+    </div><!-- End Right Columns -->
+
+  </div>
+</section>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+
+
+    // content section
+    Alpine.data('dashboard', () => ({
+      metrics: {
+        revenue_today: 125,
+        revenue_term: 2000,
+        receipts_today: 2,
+        income: 10,
+        income_percent: 90,
+        profit: 0,
+        profit_percent: 85,
+        expenses: 0,
+        expenses_percent: 50,
+      },
+      paymentMethods: [
+        { 'account_name': 'Bank Account', 'account_id': 1 },
+        { 'account_name': 'Cash Account', 'account_id': 2 },
+        { 'account_name': 'O Mari Account', 'account_id': 3 },
+        { 'account_name': 'EcoCash Account', 'account_id': 4 }
+      ],
+
+      init() {
+
+        const revenueChart = null;
+        const salesByCategory = null;
+        const dailySales = null;
+        const inventoryLevels = null;
+
+
+
+        setTimeout(() => {
+          this.revenueChart = new ApexCharts(this.$refs.revenueChart, this.revenueChartOptions);
+          this.$refs.revenueChart.innerHTML = '';
+          this.revenueChart.render();
+
+          // sales by category
+          this.salesByCategory = new ApexCharts(this.$refs.salesByCategory, this.salesByCategoryOptions);
+          this.$refs.salesByCategory.innerHTML = '';
+          this.salesByCategory.render();
+
+          // daily sales
+          this.dailySales = new ApexCharts(this.$refs.dailySales, this.dailySalesOptions);
+          this.$refs.dailySales.innerHTML = '';
+          this.dailySales.render();
+
+          this.inventoryLevels = new ApexCharts(this.$refs.inventoryLevels, this.inventoryLevelsOptions);
+          this.$refs.inventoryLevels.innerHTML = '';
+          this.inventoryLevels.render();
+        }, 300);
+
+      },
+
+
+      // revenue
+      get revenueChartOptions() {
+        return {
+          series: [
+            {
+              name: 'Income',
+              data: [16800, 16800, 15500, 17800, 15500, 17000, 19000, 16000, 15000, 17000, 14000, 17000],
+            },
+            {
+              name: 'Expenses',
+              data: [16500, 17500, 16200, 17300, 16000, 19500, 16000, 17000, 16000, 19000, 18000, 19000],
+            },
+          ],
+          chart: {
+            height: 325,
+            type: 'area',
+            fontFamily: 'Nunito, sans-serif',
+            zoom: {
+              enabled: false,
+            },
+            toolbar: {
+              show: true,
+            },
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            show: true,
+            curve: 'smooth',
+            width: 2,
+            lineCap: 'square',
+          },
+          dropShadow: {
+            enabled: true,
+            opacity: 0.2,
+            blur: 10,
+            left: -7,
+            top: 22,
+          },
+          colors: ['#4f4190', '#e7515a'],
+          markers: {
+            discrete: [
+              {
+                seriesIndex: 0,
+                dataPointIndex: 6,
+                fillColor: '#1b55e2',
+                strokeColor: 'transparent',
+                size: 7,
+              },
+              {
+                seriesIndex: 1,
+                dataPointIndex: 5,
+                fillColor: '#e7515a',
+                strokeColor: 'transparent',
+                size: 7,
+              },
+            ],
+          },
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          xaxis: {
+            axisBorder: {
+              show: false,
+            },
+            axisTicks: {
+              show: false,
+            },
+            crosshairs: {
+              show: true,
+            },
+            labels: {
+              offsetX: 0,
+              offsetY: 5,
+              style: {
+                fontSize: '12px',
+                cssClass: 'apexcharts-xaxis-title',
+              },
+            },
+          },
+          yaxis: {
+            tickAmount: 7,
+            labels: {
+              formatter: (value) => {
+                return value / 1000 + 'K';
+              },
+              offsetX: -10,
+              offsetY: 0,
+              style: {
+                fontSize: '12px',
+                cssClass: 'apexcharts-yaxis-title',
+              },
+            },
+            opposite: false,
+          },
+          grid: {
+            borderColor: '#191e3a',
+            strokeDashArray: 5,
+            xaxis: {
+              lines: {
+                show: true,
+              },
+            },
+            yaxis: {
+              lines: {
+                show: false,
+              },
+            },
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            },
+          },
+          legend: {
+            position: 'top',
+            horizontalAlign: 'right',
+            fontSize: '16px',
+            markers: {
+              width: 10,
+              height: 10,
+              offsetX: -2,
+            },
+            itemMargin: {
+              horizontal: 10,
+              vertical: 5,
+            },
+          },
+          tooltip: {
+            marker: {
+              show: true,
+            },
+            x: {
+              show: false,
+            },
+          },
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shadeIntensity: 1,
+              inverseColors: !1,
+              opacityFrom: 0.28,
+              opacityTo: 0.05,
+              stops: [45, 100],
+            },
+          },
+        };
+      },
+
+      get inventoryLevelsOptions() {
+        return {
+          series: [
+            {
+              name: 'Quantity',
+              data: [58, 44, 55, 57, 56, 61, 58, 63, 60, 66, 56, 63, 61, 58, 63, 60, 66, 56, 66, 56, 63, 61, 58, 63, 60, 66, 56, 63],
+            },
+          ],
+          chart: {
+            height: 360,
+            type: 'bar',
+            fontFamily: 'Nunito, sans-serif',
+            toolbar: {
+              show: true,
+            },
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            width: 2,
+            colors: ['transparent'],
+          },
+          colors: ['#5c1ac3'],
+
+          plotOptions: {
+            bar: {
+              horizontal: false,
+              columnWidth: '55%',
+              borderRadius: 5,
+            },
+          },
+          legend: {
+            position: 'bottom',
+            horizontalAlign: 'center',
+            fontSize: '14px',
+            itemMargin: {
+              horizontal: 8,
+              vertical: 8,
+            },
+          },
+          grid: {
+            borderColor: '#191e3a',
+            padding: {
+              left: 20,
+              right: 20,
+            },
+          },
+          xaxis: {
+            categories: ["Lumina LED Light Bulb", "Fusion Fitness Watch", "Aurora Air Purifier", "Nova Navigation System", "Apex Audio Headphones", "Pulse Power Bank", "Spectra Smart Home Security Camera", "Eon Eco-Friendly Water Bottle", "Zephyr Zen Yoga Mat", "Kai Kinetic Bike Helmet", "Lila Luxury Handbag", "Rise Rejuvenating Skincare Set", "Voyage Virtual Reality Headset", "Fusion Fitness Tracker", "Apex Audio Speaker", "Pulse Power Adapter", "Spectra Smart Phone Case", "Eon Eco-Friendly Phone Charger", "Zephyr Zen Yoga Block", "Kai Kinetic Bike Lock", "Lila Luxury Sunglasses", "Rise Rejuvenating Face Mask", "Voyage Virtual Reality Headset", "Lumina LED Light Bulb", "Fusion Fitness Watch", "Aurora Air Purifier", "Nova Navigation System"],
+            axisBorder: {
+              show: true,
+              color: '#3b3f5c',
+            },
+          },
+          yaxis: {
+            tickAmount: 6,
+          },
+
+
+          tooltip: {
+            marker: {
+              show: true,
+            },
+            y: {
+              formatter: (val) => {
+                return val;
+              },
+            },
+          },
+        };
+      },
+
+      // sales by category
+      get salesByCategoryOptions() {
+        return {
+          series: [985, 737, 270],
+          chart: {
+            type: 'donut',
+            height: 460,
+            fontFamily: 'Nunito, sans-serif',
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            show: true,
+            width: 10,
+            colors: 'transparent',
+          },
+          colors: ['#e2a03f', '#5c1ac3', '#e7515a'],
+          legend: {
+            position: 'bottom',
+            horizontalAlign: 'center',
+            fontSize: '14px',
+            markers: {
+              width: 10,
+              height: 10,
+              offsetX: -2,
+            },
+            height: 50,
+            offsetY: 20,
+          },
+          plotOptions: {
+            pie: {
+              donut: {
+                size: '65%',
+                background: 'transparent',
+                labels: {
+                  show: true,
+                  name: {
+                    show: true,
+                    fontSize: '29px',
+                    offsetY: -10,
+                  },
+                  value: {
+                    show: true,
+                    fontSize: '26px',
+                    color: undefined,
+                    offsetY: 16,
+                    formatter: (val) => {
+                      return val;
+                    },
+                  },
+                  total: {
+                    show: true,
+                    label: 'Total',
+                    color: '#888ea8',
+                    fontSize: '29px',
+                    formatter: (w) => {
+                      return w.globals.seriesTotals.reduce(function (a, b) {
+                        return a + b;
+                      }, 0);
+                    },
+                  },
+                },
+              },
+            },
+          },
+          labels: ['cocacola', 'Chunks', 'Bread'],
+          states: {
+            hover: {
+              filter: {
+                type: 'none',
+                value: 0.15,
+              },
+            },
+            active: {
+              filter: {
+                type: 'none',
+                value: 0.15,
+              },
+            },
+          },
+        };
+      },
+      // daily sales
+      get dailySalesOptions() {
+        return {
+          series: [
+            {
+              name: 'Sales',
+              data: [44, 55, 41, 67, 22, 43, 21],
+            },
+            {
+              name: 'Last Week',
+              data: [13, 23, 20, 8, 13, 27, 33],
+            },
+          ],
+          chart: {
+            height: 160,
+            type: 'bar',
+            fontFamily: 'Nunito, sans-serif',
+            toolbar: {
+              show: false,
+            },
+            stacked: true,
+            stackType: '100%',
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            show: true,
+            width: 1,
+          },
+          colors: ['#4f4190', '#e0e6ed'],
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                legend: {
+                  position: 'bottom',
+                  offsetX: -10,
+                  offsetY: 0,
+                },
+              },
+            },
+          ],
+          xaxis: {
+            labels: {
+              show: false,
+            },
+            categories: ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'],
+          },
+          yaxis: {
+            show: false,
+          },
+          fill: {
+            opacity: 1,
+          },
+          plotOptions: {
+            bar: {
+              horizontal: false,
+              columnWidth: '25%',
+            },
+          },
+          legend: {
+            show: false,
+          },
+          grid: {
+            show: false,
+            xaxis: {
+              lines: {
+                show: false,
+              },
+            },
+            padding: {
+              top: 10,
+              right: -20,
+              bottom: -20,
+              left: -20,
+            },
+          },
+        };
+      },
+
+
+
+    }));
+  });
+</script>
+
+<script src="/static/admin/js/vendor/apexcharts/apexcharts.min.js"></script>
+{% endblock %}

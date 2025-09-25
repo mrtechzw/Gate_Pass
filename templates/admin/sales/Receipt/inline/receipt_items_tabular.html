@@ -1,0 +1,38 @@
+<script>
+  function formData() {
+      return {
+          createAndSubmitFormData() {
+              let formData = new FormData();
+              formData.append('csrfmiddlewaretoken', '{{csrf_token}}');
+              formData.append('receipt_items-TOTAL_FORMS', 4);
+              formData.append('receipt_items-INITIAL_FORMS', 0);
+              formData.append('receipt_items-MIN_NUM_FORMS', 0);
+              formData.append('receipt_items-MAX_NUM_FORMS', 1000);
+
+              for (let i = 0; i < 4; i++) {
+                  formData.append(`receipt_items-${i}-id`, '');
+                  formData.append(`receipt_items-${i}-receipt`, '');
+                  formData.append(`receipt_items-${i}-product`, 1);
+                  formData.append(`receipt_items-${i}-quantity`, 1);
+              }
+
+              formData.append('receipt_items-__prefix__-id', '');
+              formData.append('receipt_items-__prefix__-receipt', '');
+              formData.append('receipt_items-__prefix__-product', '');
+              formData.append('receipt_items-__prefix__-quantity', 1);
+
+              for (let [name, value] of formData) {
+                  console.log(name, value);
+              }
+
+              fetch('{{ form_url }}', {
+                  method: 'POST',
+                  body: formData,
+              })
+              .then((response) => response.json())
+              .then((data) => console.log(data))
+              .catch((error) => console.error(error));
+          },
+      }
+  }
+</script>

@@ -1,0 +1,344 @@
+{% extends 'admin/change_form.html' %}
+{% load static %}
+{% block content %}
+<script defer="" src="{% static 'admin/js/sweetalert.min.js' %}"></script>
+<div id="content-main">
+    <div class="row" x-data="{{ opts.model_name|lower }}Items">
+        <div class="col-lg-8 module">
+            <fieldset class="module " aria-labelledby="invoice_items-heading">
+                <h2 id="invoice_items-heading" class="inline-heading">
+                    <i class="bi bi-receipt me-2"></i>Transaction Items
+                </h2>
+                <table class="w-100">
+                    <thead>
+                        <tr>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Unit Price</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Total Price</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-if="items.length <= 0">
+                            <tr>
+                                <td colspan="5" class="text-center font-semibold"><i class="bi bi-cart me-2"></i>No
+                                    Items Available</td>
+                            </tr>
+                        </template>
+                        <template x-for="(item, i) in items" :key="item.id">
+                            <tr>
+                                <th class="field-description">
+                                    <a href="#" x-text="item.name"></a>
+                                </th>
+                                <td x-text="`$${item.price}`"></td>
+                                <td><input type="number" style="width: 80px;" x-model="item.quantity"> </td>
+                                <td x-text="`$${item.price * item.quantity}`"></td>
+                                <td>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm "
+                                        @click="removeItem(item)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </fieldset>
+        </div>
+        <div class="col-lg-4">
+            <div class="row module" style="background: var(--darkened-bg);">
+                <h2> <i class="bi bi-upc-scan me-2"></i>Scan Product</h2>
+                <div class="container my-4">
+                    <div class="my-2">
+                        <label for="id_barcode">Barcode</label>
+                        <input type="text" id="id_barcode" class="vTextField w-100" placeholder="Scan Barcode"
+                            x-ref="barcode" x-model="barcode" @keydown.enter.prevent="focusQuantity"
+                            @input="selectProductByBarcode">
+
+                    </div>
+                    <div class="row">
+                        <div class="col my-2">
+                            <label for="id_product">Product</label>
+                            <select class="vTextField w-100" id="id_product" x-ref="product" @change="updateBarcode"
+                                x-model="selectedProductId">
+                                <option value="">Select a product</option>
+                                <template x-for="product in products" :key="product.id">
+                                    <option :value="product.id" x-text="product.name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="col my-2">
+                            <label for="id_product_quantity">Quantity</label>
+                            <input type="number" class="vTextField w-100" placeholder="Quantity"
+                                @keydown.enter.prevent="addItem()" id="id_product_quantity" x-ref="quantity">
+                        </div>
+                    </div>
+                    <div class="mt-2 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-success btn-sm mx-1" @click="addItem()"><i
+                                class="bi bi-plus-circle me-1"></i>Add </button>
+                        <button type="submit" class="btn btn-outline-danger btn-sm mx-1" @click="clearForms()"><i
+                                class="bi bi-x-circle me-1"></i>Clear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row module" style="background: var(--darkened-bg);">
+                <h2><i class="bi bi-receipt-cutoff me-2"></i>Transaction Summary</h2>
+                <div class="container py-4">
+                    <div class="row">
+                        <div class="col my-2">
+                            <label for="id_amount_paid">Amount Paid</label>
+                            <input type="number" id="id_amount_paid" class="vTextField w-100" placeholder="Amount Paid"
+                                x-model="amountPaid">
+
+                        </div>
+                    </div>
+                    <div class="">
+                        <div class="mt-2 d-flex justify-content-between font-semibold">
+                            <div>Total Amount</div>
+                            <div x-text="`$${totalAmount}`">$0.00</div>
+                        </div>
+                        <div class="mt-2 d-flex justify-content-between font-semibold">
+                            <div>Change</div>
+                            <div x-text="`$${change}`">$0.00</div>
+
+                        </div>
+
+                        <h2 class="row-form-label p-2 my-2">payment methods</h2>
+                        <div class="col-sm-10 mx-4">
+                            <template x-for="paymentMethod in paymentMethods" :key="paymentMethod.account_id">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method"
+                                        :id="'payment-' + paymentMethod.account_id" :value="paymentMethod.account_id"
+                                        x-model="selectedPaymentMethodId">
+                                    <label class="form-check-label" :for="'payment-' + paymentMethod.account_id"
+                                        x-text="paymentMethod.account_name">
+                                    </label>
+                                </div>
+                            </template>
+
+
+                        </div>
+
+                        <div class="mt-2 d-flex justify-content-end">
+                            <button type="button" class="btn btn-sm btn-outline-success mx-1"
+                                @click="createAndSubmitFormData"><i class="bi bi-check-circle me-1"></i>Save</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning mx-1" @click="clearAllItems"><i
+                                    class="bi bi-exclamation-triangle me-1"></i>Clear</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger mx-1" @click="clearAllItems"><i
+                                    class="bi bi-exclamation-octagon me-1"></i>Discard</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block footer %}
+<script>
+    const products = JSON.parse('{{ products_json|safe }}');
+    const paymentMethods = JSON.parse('{{ payments_methods_json|safe }}');
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('{{ opts.model_name|lower }}Items', () => ({
+            items: [],
+            amountPaid: 0,
+            products: products,
+            paymentMethods: paymentMethods,
+            barcode: '',
+            selectedProductId: '',
+            selectedPaymentMethodId: '',
+
+            selectProductByBarcode() {
+                const match = this.products.find(p => p.barcode === this.barcode);
+                if (match) {
+                    this.selectedProductId = match.id;
+                } else {
+                    this.selectedProductId = '';
+                }
+            },
+
+            updateBarcode() {
+                const match = this.products.find(p => p.id == this.selectedProductId);
+                if (match) {
+                    this.barcode = match.barcode;
+                } else {
+                    this.barcode = '';
+                }
+            },
+            focusQuantity() {
+                const selectedId = this.$refs.product.value;
+                const selectedProduct = this.products.find(p => p.id == selectedId);
+
+                if (!selectedProduct) {
+                    this.showArlertError("Selected product not found.");
+                } else {
+                    this.$refs.quantity.focus();
+                }
+            },
+
+            get totalAmount() {
+                return this.items.reduce((total, item) => total + item.price * item.quantity, 0);
+            },
+            get change() {
+                return this.amountPaid - this.totalAmount;
+            },
+            init() {
+                this.$refs.quantity.value = '';
+                this.$refs.barcode.focus();
+            },
+            addItem() {
+                if (this.$refs.quantity.value == '') {
+                    this.showArlertError("Quantity must be set correctly");
+                } else {
+                    const selectedProduct = this.products.find(product => product.id == this.$refs.product.value);
+                    if (selectedProduct) {
+                        let price = 0;
+                        if (selectedProduct.selling_price){
+                            price = selectedProduct.selling_price
+                        }else{
+                            price = selectedProduct.cost_price
+                        }
+                        this.items.push({
+                            id: Date.now(),
+                            name: selectedProduct.name,
+                            barcode: selectedProduct.barcode,
+                            quantity: this.$refs.quantity.value,
+                            price: price,
+                            isActive: selectedProduct.is_active
+                        });
+                        this.clearForms();
+                    }
+                }
+            },
+            showArlertSuccess(message) {
+                const toast = window.Swal.mixin({
+                    toast: true,
+                    position: 'top',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    padding: '1em',
+                    customClass: {
+                        popup: 'bg-success text-light'
+                    }
+                });
+                toast.fire({
+                    icon: 'success',
+                    title: message,
+                    padding: '1em',
+                });
+            },
+            showAlertWaiting() {
+                new window.Swal({
+                    title: 'Processing',
+                    html: '<b>please wait while processing . . . </b>',
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'module'
+                    },
+                    color: 'var(--body-fg)',
+                    background: 'var(--body-bg)',
+                    didOpen: () => {
+                        window.Swal.showLoading();
+
+                    },
+
+                });
+            },
+
+            showArlertError(message) {
+                const toast = window.Swal.mixin({
+                    toast: true,
+                    position: 'top',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    padding: '1em',
+                    customClass: {
+                        popup: 'bg-danger text-light'
+                    }
+                });
+                toast.fire({
+                    icon: 'error',
+                    title: message,
+                    padding: '1em',
+                });
+            },
+            clearForms() {
+                this.$refs.barcode.value = '';
+                this.selectedProductId = '';
+                this.$refs.quantity.value = '';
+                this.$refs.barcode.focus();
+            },
+            removeItem(item) {
+                this.items = this.items.filter((d) => d.id != item.id);
+            },
+            clearAllItems() {
+                this.items = [];
+                this.amountPaid = 0;
+                this.clearForms();
+            },
+            createAndSubmitFormData() {
+                if (this.items.length === 0) {
+                    this.showArlertError('You have to add items first.');
+                    return;
+                }
+
+                if (!this.selectedPaymentMethodId) {
+                    this.showArlertError('Please select a payment method.');
+                    return;
+                }
+
+                let formData = new FormData();
+                formData.append('csrfmiddlewaretoken', '{{csrf_token}}');
+                formData.append('created_by', '{{request.user.id}}');
+                formData.append('payment_method', this.selectedPaymentMethodId);
+                formData.append('items-TOTAL_FORMS', this.items.length);
+                formData.append('items-INITIAL_FORMS', 0);
+                formData.append('items-MIN_NUM_FORMS', 0);
+                formData.append('items-MAX_NUM_FORMS', 1000);
+
+                this.items.forEach((item, index) => {
+                    let selectedProduct = this.products.find(product => product.barcode == item.barcode);
+                    formData.append(`items-${index}-id`, '');
+                    formData.append(`items-${index}-receipt`, '');
+                    formData.append(`items-${index}-product`, selectedProduct.id);
+                    formData.append(`items-${index}-quantity`, item.quantity);
+                });
+
+                formData.append('items-__prefix__-id', '');
+                formData.append('items-__prefix__-receipt', '');
+                formData.append('items-__prefix__-product', '');
+                formData.append('items-__prefix__-quantity', 1);
+
+                this.showAlertWaiting();
+
+                fetch('{{ form_url }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                           this.showArlertSuccess(data.message);
+                            this.clearAllItems();
+                        } else {
+                            this.showArlertError('Failed: ' + data.error_message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        this.showArlertError('Unexpected error occurred');
+                    });
+            },
+
+        }));
+    });
+</script>
+
+
+{% endblock %}

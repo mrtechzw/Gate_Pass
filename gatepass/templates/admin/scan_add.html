@@ -1,0 +1,198 @@
+{% extends 'admin/change_form.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .module h2 {
+        font-size: large;
+    }
+
+    .TextField {
+        font-size: medium;
+    }
+
+    label {
+        font-size: medium;
+    }
+</style>
+<script defer="" src="{% static 'admin/js/sweetalert.min.js' %}"></script>
+<div class="content-main" id="content-main">
+    <div class="row justify-content-around" x-data="gatePass">
+        <div class="col-lg-5 module">
+            
+                <h2 id="invoice_items-heading" class="inline-heading">
+                    <i class="bi bi-receipt me-2"></i>Student Image
+                </h2>
+                <img x-ref="student_image" :src="selectedStudent.image || '/static/admin/gatepass/img/default.svg'"
+                    alt="Student Image" class="w-100"/>
+        </div>
+        <div class="col-lg-6">
+            <div class="row module" style="background: var(--darkened-bg);">
+                <h2>
+                    <i class="bi bi-upc-scan me-2"></i>Student Information
+                </h2>
+                <div class="container my-4">
+                    <div class="my-2">
+                        <label for="student_id">Scan ID</label>
+                        <input type="text" id="student_id" class="TextField w-100" placeholder="Scan Barcode"
+                            @keydown.enter.prevent="selectStudent()" x-ref="student_id" x-model="studentId">
+                    </div>
+                    <div class="row">
+                        <div class="col my-2">
+                            <label for="student_full_name">Full Name</label>
+                            <input class="TextField w-100" placeholder="Full Name" id="student_full_name"
+                                x-ref="student_full_name" x-model="selectedStudent.full_name" readonly>
+                        </div>
+                        <div class="col my-2">
+                            <label for="student_gender">Gender</label>
+                            <input class="TextField w-100" placeholder="Gender" id="student_gender"
+                                x-ref="student_gender" x-model="selectedStudent.gender" readonly>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col my-2">
+                            <label for="student_date_of_birth">Date Of Birth</label>
+                            <input class="TextField w-100" placeholder="Date Of Birth" id="student_date_of_birth"
+                                x-ref="student_date_of_birth" x-model="selectedStudent.date_of_birth" readonly>
+                        </div>
+                    </div>
+                    <div class="mt-2 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-success mx-1" @click="selectStudent()">
+                            <i class="bi bi-plus-circle me-1"></i>Check
+                        </button>
+                        <button type="submit" class="btn btn-outline-danger mx-1" @click="clearForms()">
+                            <i class="bi bi-x-circle me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+    {% block footer %}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('gatePass', () => ({
+                studentId: '',
+                selectedStudent: {},
+                students: JSON.parse('{{ students_json|safe }}'),
+                init(){
+                    this.$refs.student_id.focus();
+                },
+                selectStudent() {
+                    const id = parseInt(this.studentId);
+                    const match = this.students.find(student => student.id === id);
+                    this.selectedStudent = match || {};
+                    this.createAndSubmitFormData()
+                    this.studentId = ''
+                   
+                },
+
+
+                showArlertSuccess(message) {
+                    const toast = window.Swal.mixin({
+                        toast: true,
+                        position: 'top',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        padding: '1em',
+                        customClass: {
+                            popup: 'bg-success text-light'
+                        }
+                    });
+                    toast.fire({
+                        icon: 'success',
+                        title: message,
+                        padding: '1em',
+                    });
+                },
+                showAlertWaiting() {
+                    new window.Swal({
+                        title: 'Processing',
+                        html: '<b>please wait while processing . . . </b>',
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: {
+                            popup: 'module'
+                        },
+                        color: 'var(--body-fg)',
+                        background: 'var(--body-bg)',
+                        didOpen: () => {
+                            window.Swal.showLoading();
+
+                        },
+
+                    });
+                },
+
+                showArlertError(message) {
+                    const toast = window.Swal.mixin({
+                        toast: true,
+                        position: 'top',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        padding: '1em',
+                        customClass: {
+                            popup: 'bg-danger text-light'
+                        }
+                    });
+                    toast.fire({
+                        icon: 'error',
+                        title: message,
+                        padding: '1em',
+                    });
+                },
+                playSound(error=true) {
+                    let soundUrl = error ? '/static/admin/gatepass/sounds/error.mp3' : '/static/admin/gatepass/sounds/success.mp3';
+                    new Audio(soundUrl).play();
+                },
+                clearForms() {
+                    this.$refs.student_id.value = '';
+                    this.$refs.student_image.src = '/static/admin/gatepass/img/default.svg';
+                    this.$refs.student_full_name.value = '';
+                    this.$refs.student_gender.value = '';
+                    this.$refs.student_date_of_birth.value = '';
+                    this.$refs.student_id.focus();
+                },
+
+                createAndSubmitFormData() {
+                    let formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', '{{csrf_token}}');
+                    formData.append('student_id', this.studentId);
+
+                    this.showAlertWaiting();
+
+                    fetch('{{ form_url }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.playSound(error=false)
+                                this.showArlertSuccess(data.message);
+                                this.$refs.student_id.focus();
+                            } else {
+                                this.playSound(error=true)
+                                this.showArlertError('Failed: ' + data.error_message);
+                                this.$refs.student_id.focus();
+                            }
+                        })
+                        .catch(error => {
+                            this.playSound(error=true)
+                            console.error(error);
+                            this.showArlertError('Unexpected error occurred');
+                        });
+                },
+
+            }));
+        });
+    </script>
+
+
+    {% endblock %}
