@@ -14,7 +14,6 @@ Provides request creation, approval/rejection workflows and a minimal UI for use
 - [Features](#features)  
 - [Tech stack](#tech-stack)  
 - [Quick start (dev)](#quick-start-dev)  
-- [Environment variables](#environment-variables)  
 - [Database](#database)  
 - [Project structure](#project-structure)  
 
@@ -148,8 +147,8 @@ Please add a `CONTRIBUTING.md` if you expect external contributors.
 ### By Richard Gunha
 
 * Repo root listing (saw top-level folders & files). 
-* `manage.py` present. ([GitHub][2])
-* `gatepass/` app folder present. ([GitHub][3])
+* `manage.py` present. 
+* `gatepass/` app folder present. 
 * `gatepass/models.py` exists (app contains Python code). 
 * `README.md` placeholder exists (we’re replacing/improving it).
 
