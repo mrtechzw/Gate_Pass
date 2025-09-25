@@ -17,19 +17,13 @@ Provides request creation, approval/rejection workflows and a minimal UI for use
 - [Environment variables](#environment-variables)  
 - [Database](#database)  
 - [Project structure](#project-structure)  
-- [Tests](#tests)  
-- [Deployment notes](#deployment-notes)  
-- [Security notes](#security-notes)  
-- [To do / suggestions (high priority)](#to-do--suggestions-high-priority)  
-- [Contributing](#contributing)  
-- [License](#license)  
-- [Repository scan summary](#repository-scan-summary)
+
 
 ---
 
 ## About
 
-This repository implements a Gate Pass system using Django with HTML / CSS / JavaScript front-end assets. The repository contains the Django project (likely in `config/`) and application(s) (`gatepass/`, `students/`) plus static assets and admin templates. :contentReference[oaicite:1]{index=1}
+This repository implements a Gate Pass system using Django with HTML / CSS / JavaScript front-end assets. The repository contains the Django project (likely in `config/`) and application(s) (`gatepass/`, `students/`) plus static assets and admin templates. 
 
 ---
 
@@ -38,14 +32,14 @@ This repository implements a Gate Pass system using Django with HTML / CSS / Jav
 - Create / submit gate pass requests  
 - Approve / reject gate pass requests (admin/guard)  
 - Pass history / status view for users  
-- Web UI templates and static assets (JS/CSS). :contentReference[oaicite:2]{index=2}
+- Web UI templates and static assets (JS/CSS).
 
 ---
 
 ## Tech stack
 - Python (3.8+) — use latest 3.x LTS you support  
 - Django (please pin a version; instructions below)  
-- Front-end: HTML, CSS, JavaScript (repo languages show heavy HTML/JS/CSS usage). :contentReference[oaicite:3]{index=3}
+- Front-end: HTML, CSS, JavaScript (repo languages show heavy HTML/JS/CSS usage). 
 
 > If you want exact pinned dependency versions I can extract them from `requirements.txt` — if not present, see the quick step below to generate one.
 
@@ -153,10 +147,10 @@ Please add a `CONTRIBUTING.md` if you expect external contributors.
 
 ### By Richard Gunha
 
-* Repo root listing (saw top-level folders & files). ([GitHub][1])
+* Repo root listing (saw top-level folders & files). 
 * `manage.py` present. ([GitHub][2])
 * `gatepass/` app folder present. ([GitHub][3])
-* `gatepass/models.py` exists (app contains Python code). ([GitHub][4])
-* `README.md` placeholder exists (we’re replacing/improving it). ([GitHub][5])
+* `gatepass/models.py` exists (app contains Python code). 
+* `README.md` placeholder exists (we’re replacing/improving it).
 
 ---
